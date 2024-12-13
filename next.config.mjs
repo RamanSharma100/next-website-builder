@@ -9,6 +9,9 @@ const nextConfig = {
       'files.stripe.com',
     ],
   },
+  env: {
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+  },
   reactStrictMode: false,
 };
 
