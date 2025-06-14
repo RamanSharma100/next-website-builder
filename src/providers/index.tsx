@@ -1,3 +1,5 @@
+'use client';
+
 import AuthProvider from './auth-provider';
 
 const ApplyProviders: React.FC<{
