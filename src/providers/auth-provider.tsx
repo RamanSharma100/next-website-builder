@@ -1,13 +1,10 @@
 import { useAuth, useSession } from '@clerk/nextjs';
-import { createContext, useContext, useEffect, useState } from 'react';
 import {
-  // SignOut,
-  // GetToken,
   UserResource,
   ActiveSessionResource,
   CheckAuthorizationWithCustomPermissions,
-  // GetTokenOptions,
 } from '@clerk/types';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 type AuthProviderProps = {
   children: React.ReactNode | JSX.Element;
@@ -18,15 +15,15 @@ type AuthContextReturn = {
   isAuthLoaded: boolean | undefined;
   userId: string | null | undefined;
   sessionId: string | null | undefined;
-  user: UserResource | null | undefined;
+  user: UserResource | undefined;
   session: ActiveSessionResource | null | undefined;
   has: CheckAuthorizationWithCustomPermissions | any | undefined;
 };
 
 const initialState = {
-  user: null,
+  user: undefined,
   userId: null,
-  session: null,
+  session: undefined,
   has: undefined,
   sessionId: null,
   isSignedIn: false,
@@ -36,7 +33,7 @@ const initialState = {
 export const AuthContext = createContext<AuthContextReturn>(initialState);
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<UserResource | null | undefined>();
+  const [user, setUser] = useState<UserResource | undefined>();
 
   const { session } = useSession();
   const {
@@ -52,9 +49,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     if (isAuthLoaded) {
       if (isAuthenticated) {
-        setUser(session?.user);
+        setUser(session?.user as UserResource | undefined);
       } else {
-        setUser(null);
+        setUser(undefined);
       }
     }
   }, [isAuthLoaded, isAuthenticated, session]);
