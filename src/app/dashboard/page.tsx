@@ -1,16 +1,8 @@
-'use client';
-
-import { useSession } from '@clerk/nextjs';
-
-const DashboardPage = () => {
-  const { session } = useSession();
-
-  const user = session?.user;
-
+const DashboardPage = async () => {
   return (
     <h1>
       Welcome to the dashboard:{' '}
-      <strong>{user?.firstName + ' ' + user?.lastName}</strong>
+      {/* <strong>{user?. + ' ' + user?.lastName}</strong> */}
     </h1>
   );
 };

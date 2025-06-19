@@ -1,30 +1,26 @@
-import { useAuth, useSession } from '@clerk/nextjs';
-import {
-  UserResource,
-  ActiveSessionResource,
-  CheckAuthorizationWithCustomPermissions,
-} from '@clerk/types';
+'use client';
+
 import { createContext, useContext, useEffect, useState } from 'react';
+import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 type AuthProviderProps = {
-  children: React.ReactNode | JSX.Element;
+  children: React.ReactNode;
 };
 
 type AuthContextReturn = {
-  isSignedIn: boolean | undefined;
-  isAuthLoaded: boolean | undefined;
-  userId: string | null | undefined;
-  sessionId: string | null | undefined;
-  user: UserResource | undefined;
-  session: ActiveSessionResource | null | undefined;
-  has: CheckAuthorizationWithCustomPermissions | any | undefined;
+  isSignedIn: boolean;
+  isAuthLoaded: boolean;
+  user: User | null;
+  session: Session | null;
+  userId: string | null;
+  sessionId: string | null;
 };
 
-const initialState = {
-  user: undefined,
+const initialState: AuthContextReturn = {
+  user: null,
+  session: null,
   userId: null,
-  session: undefined,
-  has: undefined,
   sessionId: null,
   isSignedIn: false,
   isAuthLoaded: false,
@@ -33,39 +29,44 @@ const initialState = {
 export const AuthContext = createContext<AuthContextReturn>(initialState);
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<UserResource | undefined>();
-
-  const { session } = useSession();
-  const {
-    // getToken,
-    isLoaded: isAuthLoaded,
-    userId,
-    sessionId,
-    has,
-    isSignedIn: isAuthenticated,
-    // signOut
-  } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
 
   useEffect(() => {
-    if (isAuthLoaded) {
-      if (isAuthenticated) {
-        setUser(session?.user as UserResource | undefined);
-      } else {
-        setUser(undefined);
+    const fetchSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAuthLoaded(true);
+    };
+
+    fetchSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        setSession(session);
+        setUser(session?.user ?? null);
       }
-    }
-  }, [isAuthLoaded, isAuthenticated, session]);
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        has,
         user,
-        userId,
         session,
-        sessionId,
+        userId: user?.id ?? null,
+        sessionId: session?.user?.id ?? null,
+        isSignedIn: !!user,
         isAuthLoaded,
-        isSignedIn: isAuthenticated,
       }}>
       {children}
     </AuthContext.Provider>
