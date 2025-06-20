@@ -8,21 +8,122 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  supabaseId String   @unique
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sites     Site[]
+  id          String     @id @default(cuid())
+  supabaseId  String     @unique
+  email       String     @unique
+  name        String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  sites       Site[]
+  pages       Page[]
+  components  Component[]
+  archivedComponents Component[] @relation("ComponentArchivedBy")
+  deletedComponents  Component[] @relation("ComponentDeletedBy")
+  archivedPages      Page[]     @relation("PageArchivedBy")
+  deletedPages       Page[]     @relation("PageDeletedBy")
 }
 
 model Site {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   title     String
-  slug      String   @unique
+  slug      String     @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
+  pages     Page[]
+  components Component[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Component {
+  id          String      @id @default(cuid())
+  name        String
+  type        String
+  props       Json
+  parentId    String?
+  parent      Component?  @relation("ComponentChildren", fields: [parentId], references: [id])
+  children    Component[] @relation("ComponentChildren")
+
+  pageId      String
+  page        Page        @relation(fields: [pageId], references: [id])
+
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+
+  siteId      String
+  site        Site        @relation(fields: [siteId], references: [id])
+
+  styles      Json?
+  attributes  Json?
+  events      Json?
+  content     Json?
+  metadata    Json?
+  isGlobal    Boolean     @default(false)
+  isPublished Boolean     @default(false)
+  version     Int         @default(1)
+  dependencies Json?
+  isTemplate  Boolean     @default(false)
+
+  templateId  String?
+  template    Component?  @relation("ComponentTemplate", fields: [templateId], references: [id])
+  templateComponents Component[] @relation("ComponentTemplate")
+
+  isDraft     Boolean     @default(true)
+  draftOf     String?
+  draft       Component?  @relation("ComponentDraft", fields: [draftOf], references: [id])
+  draftComponents Component[] @relation("ComponentDraft")
+
+  isArchived  Boolean     @default(false)
+  archivedAt  DateTime?
+  archivedBy  String?
+  archivedByUser User?   @relation("ComponentArchivedBy", fields: [archivedBy], references: [id])
+
+  isDeleted   Boolean     @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  deletedByUser User?    @relation("ComponentDeletedBy", fields: [deletedBy], references: [id])
+
+  isVersioned Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Page {
+  id          String     @id @default(cuid())
+  name        String
+  projectId   String
+  userId      String
+  siteId      String
+
+  user        User       @relation(fields: [userId], references: [id])
+  site        Site       @relation(fields: [siteId], references: [id])
+  components  Component[]
+
+  isPublished Boolean    @default(false)
+  isDraft     Boolean    @default(true)
+
+  draftOf     String?
+  draft       Page?      @relation("PageDraft", fields: [draftOf], references: [id])
+  draftPages  Page[]     @relation("PageDraft")
+
+  isArchived  Boolean    @default(false)
+  archivedAt  DateTime?
+  archivedBy  String?
+  archivedByUser User?  @relation("PageArchivedBy", fields: [archivedBy], references: [id])
+
+  isDeleted   Boolean    @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  deletedByUser User?   @relation("PageDeletedBy", fields: [deletedBy], references: [id])
+
+  isVersioned Boolean    @default(false)
+  version     Int        @default(1)
+  metadata    Json?
+  styles      Json?
+  attributes  Json?
+  events      Json?
+  content     Json?
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }

@@ -1,8 +1,13 @@
-const DashboardPage = async () => {
+'use client';
+
+import { useAuthenticate } from '@/hooks';
+
+const DashboardPage = () => {
+  const { user } = useAuthenticate();
+
   return (
     <h1>
-      Welcome to the dashboard:{' '}
-      {/* <strong>{user?. + ' ' + user?.lastName}</strong> */}
+      Welcome to the dashboard: <strong>{user?.email}</strong>
     </h1>
   );
 };
